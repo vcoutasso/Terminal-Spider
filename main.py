@@ -38,27 +38,41 @@ def set_table(deck, rows):
     for i in range(4):
         rows[i].append(deck.pop())
 
-    for i in range(10):
-        print(rows[i])
-
-    print("\nDeck: ", end='')
-    print(deck)
     return
 
+# Funcao responsavel por imprimir a mesa com as cartas na tela. Uma bagunca mas funciona.
 def print_table(rows, hidden):
-    card = "┌────┐\033[1B\033[6D|10 \u2660|\033[1B\033[6D|    |\033[1B\033[6D|    |\033[1B\033[6D└────┘"
+    card_placeholder = "┌────┐\033[1B\033[6D|10 \u2660|\033[1B\033[6D|    |\033[1B\033[6D|    |\033[1B\033[6D└────┘"
     card_back = "┌────┐\033[1B\033[6D| /\ |\033[1B\033[6D| -- |\033[1B\033[6D| \/ |\033[1B\033[6D└────┘"
-    deck_cards = "┌────┐┐\033[1B\033[7D| /\ ||\033[1B\033[7D| -- ||\033[1B\033[7D| \/ ||\033[1B\033[7D└────┘┘"
-    cursor_to(5, 20)
-    print(card, end='')
-    move_cursor("up", 4)
-    print(card_back,end='')
-    move_cursor("up", 4)
-    print(deck_cards, end='')
 
-    print()
+    card_bottom = "|    |\033[1B\033[6D|    |\033[1B\033[6D└────┘"
 
-if os.name == "posix": # Limpa a tela.
+    card_back_top = "┌────┐\033[1B\033[6D| /\ |\033[1B\033[6D"
+    card_back_bottom = "| -- |\033[1B\033[6D| \/ |\033[1B\033[6D└────┘"
+    
+    cursor_to(2, 8)
+
+    for i in range(0,10):
+        for j in range(0,hidden[i]):
+            print(card_back_top, end='')
+        for j in range(0,len(rows[i])-hidden[i]):
+            value = rows[i][len(rows[i])-1-j]
+            if value == '10':
+                card_top = "┌────┐\033[1B\033[6D|10 \u2660|\033[1B\033[6D"
+            else:
+                card_top = "┌────┐\033[1B\033[6D|{}  \u2660|\033[1B\033[6D".format(value)
+            print(card_top, end='')
+
+        print(card_bottom, end='')
+        move_cursor("up", 2 + 2 * len(rows[i]))
+        move_cursor("forward", 6)
+    
+
+    cursor_to(60, 1)
+
+
+# Limpa a tela.
+if os.name == "posix": 
     os.system('clear') 
 else:
     os.system('cls') 
@@ -75,5 +89,5 @@ for i in range(random.randint(5,8)):
 
 spades = "\u2660"
 
-print_table(rows, hidden_cards)
 set_table(deck, rows)
+print_table(rows, hidden_cards)
