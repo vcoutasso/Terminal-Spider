@@ -23,7 +23,7 @@ def move_cursor(direction, qtd): # Move o cursor em N linhas ou colunas para qua
         print("Invalid direction!")
         return
         
-    print("\033[%d%c" % (qtd, ch), end='') 
+    print("\033[%d%c" % (qtd, ch),end='') 
 
 
 def print_table():
@@ -39,8 +39,12 @@ def print_table():
 
     print()
 
+if os.name == "posix": # Limpa a tela
+	os.system('clear') 
+	
+else:
+	os.system('cls') 
 
-os.system('clear') # Limpa a tela
 random.seed() # Inicializa o estado interno do gerador de numeros aleatorios com o tempo atual do sistema.
 
 deck = 4 * ["A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K"] # Cria o baralho.
