@@ -1,3 +1,5 @@
+#TODO: Apagar a seta individualmente ao inves de apagar toda a tela para a tela parar de piscar constantemente.
+
 import random 
 import curses # O metodo input() nao gosta muito das setas do teclado, entao estou usando window.getch() do curses
 import os
