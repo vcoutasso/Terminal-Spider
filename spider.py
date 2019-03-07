@@ -10,6 +10,7 @@ else:
 
 def cursor_to(x, y): # Move o cursor para uma posicao especifica.
     print("\033[%d;%dH" % (x, y), end='')
+    return 0
 
 
 def move_cursor(direction, qtd): # Move o cursor em N linhas ou colunas para qualquer lado.
@@ -23,9 +24,10 @@ def move_cursor(direction, qtd): # Move o cursor em N linhas ou colunas para qua
         ch = 'D'
     else:
         print("Invalid direction!")
-        return
+        return 1
         
     print("\033[%d%c" % (qtd, ch),end='') 
+    return 0
 
 
 def set_table(deck, rows):
@@ -40,7 +42,7 @@ def set_table(deck, rows):
     for i in range(4):
         rows[i].append(deck.pop())
 
-    return
+    return 0
 
 # Funcao responsavel por imprimir a mesa com as cartas na tela. Uma bagunca mas funciona.
 def print_table(rows, hidden, arrow):
@@ -55,17 +57,18 @@ def print_table(rows, hidden, arrow):
     cursor_to(2, 8)
 
     for i in range(0,10):
-        for k in range(0,hidden[i]):
-            print(card_back_top, end='')
+        for j in range(0,len(rows[i])):
+            if j < hidden[i]:
+                print(card_back_top, end='')
+                continue
 
-        for j in range(0,len(rows[i])-hidden[i]): 
             if arrow[0] == i and arrow[1] == j: # Imprime seta de selecao
                 move_cursor("backward", 2)
                 move_cursor("down", 1)
                 print("->", end='')
                 move_cursor("up", 1)
 
-            value = rows[i][len(rows[i])-1-j]
+            value = rows[i][j]
             if value == '10':
                 card_top = "┌────┐\033[1B\033[6D|10 \u2660|\033[1B\033[6D"
             else:
@@ -78,11 +81,32 @@ def print_table(rows, hidden, arrow):
     
 
     cursor_to(60, 1)
+    return 0
 
-# TODO: Implementar verificacoes para evitar que a seta seja deslocada para posicoes invalidas
-def check_arrow(rows, arrow):
-    return True
+def check_arrow(rows, arrow, direction):
+    if direction == "left":
+        if arrow[0] > 0:
+            return True
+    elif direction == "right":
+        if arrow[0] < 9:
+            return True
+    elif direction == "up":
+        if arrow[1] > 0:
+            return True
+    elif direction == "down":
+        if arrow[1] < len(rows[arrow[0]]) - 1:
+            return True
 
+
+    return False
+
+def draw_cards(rows, deck, arrow):
+    if len(deck) > 0:
+        for i in range(10):
+            rows[i].append(deck.pop())
+        arrow[1] += 1
+
+    return 0
 
 # Limpa a tela.
 def clear_screen():
@@ -103,7 +127,7 @@ random.seed() # Inicializa o estado interno do gerador de numeros aleatorios com
 deck = 8 * ["A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K"] # Cria o baralho.
 rows = 10 * [None] # Cria as dez colunas.
 hidden_cards = [4, 4, 4, 4, 3, 3, 3, 3, 3, 3] # Quantidade de cartas viradas para baixo em cada coluna.
-arrow = [0, 0] # Posicao x e y da seta de selecao
+arrow = [0, 4] # Posicao x e y da seta de selecao
 
 # Embaralha o baralho de 5 a 8 vezes.
 for i in range(random.randint(5,8)): 
@@ -117,22 +141,29 @@ while True:
     if char == ord('q') or char == 27: # q ou ESC para sair. ESC tem um delay por algum motivo
         break
     elif char == curses.KEY_LEFT:
-        if check_arrow(rows, arrow):
+        if check_arrow(rows, arrow, "left"):
             arrow[0] -= 1
+            arrow[1] = len(rows[arrow[0]]) - 1
+
             print(chr(27) + "[2J") # Unica forma que consegui encontrar pra limpar a tela com o curses
     elif char == curses.KEY_UP:
-        if check_arrow(rows, arrow):
+        if check_arrow(rows, arrow, "up"):
             arrow[1] -= 1
             print(chr(27) + "[2J")
     elif char == curses.KEY_RIGHT:
-        if check_arrow(rows, arrow):
+        if check_arrow(rows, arrow, "right"):
             arrow[0] += 1
+            arrow[1] = len(rows[arrow[0]]) - 1
+
             print(chr(27) + "[2J")
     elif char == curses.KEY_DOWN:
-        if check_arrow(rows, arrow):
+        if check_arrow(rows, arrow, "down"):
             arrow[1] += 1
             print(chr(27) + "[2J")
-    
+    elif char == ord('s'):
+        draw_cards(rows, deck, arrow)
+        print(chr(27) + "[2J")
+
 screen.erase()
 curses.nocbreak()
 curses.echo()
