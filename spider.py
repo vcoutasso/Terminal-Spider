@@ -1,5 +1,7 @@
 #!/usr/bin/python3
 
+#TODO: Impedir com que a seta se desloque para posicoes probidas
+
 import random 
 import curses # O metodo input() nao gosta muito das setas do teclado, entao estou usando window.getch() do curses
 import os
@@ -67,7 +69,7 @@ def set_table(deck, rows):
     return 0
 
 # Funcao responsavel por imprimir a mesa com as cartas na tela. Uma bagunca mas funciona.
-def print_table(rows, hidden, arrow):
+def print_table(rows, hidden, arrow, old_arrow):
     card_placeholder = "┌────┐\033[1B\033[6D|10 \u2660|\033[1B\033[6D|    |\033[1B\033[6D|    |\033[1B\033[6D└────┘"
     card_back = "┌────┐\033[1B\033[6D| /\ |\033[1B\033[6D| -- |\033[1B\033[6D| \/ |\033[1B\033[6D└────┘"
 
@@ -85,9 +87,20 @@ def print_table(rows, hidden, arrow):
                 continue
 
             if arrow[0] == i and arrow[1] == j: # Imprime seta de selecao
+
                 move_cursor("backward", 2)
                 move_cursor("down", 1)
+
                 print("->", end='')
+                move_cursor("up", 1)
+
+            # Apaga seta antiga.
+            if old_arrow[0] == i and old_arrow[1] == j: 
+
+                move_cursor("backward", 2)
+                move_cursor("down", 1)
+                
+                print("  ", end='')
                 move_cursor("up", 1)
 
             value = rows[i][j]
@@ -100,9 +113,7 @@ def print_table(rows, hidden, arrow):
         print(card_bottom, end='')
         move_cursor("up", 2 + 2 * len(rows[i]))
         move_cursor("forward", 6)
-    
 
-    cursor_to(60, 1)
     return 0
 
 def check_arrow(rows, arrow, direction):
@@ -143,6 +154,7 @@ curses.cbreak()
 curses.noecho()
 screen.timeout(10)
 screen.keypad(True)
+screen.leaveok(0)
 
 random.seed() # Inicializa o estado interno do gerador de numeros aleatorios com o tempo atual do sistema.
 
@@ -150,6 +162,7 @@ deck = 8 * ["A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K"] # 
 rows = 10 * [None] # Cria as dez colunas.
 hidden_cards = [4, 4, 4, 4, 3, 3, 3, 3, 3, 3] # Quantidade de cartas viradas para baixo em cada coluna.
 arrow = [0, 4] # Posicao x e y da seta de selecao
+old_arrow = [0, 0] # Coordenadas da seta na tela
 
 # Embaralha o baralho de 5 a 8 vezes.
 for i in range(random.randint(5,8)): 
@@ -159,32 +172,35 @@ set_table(deck, rows)
 
 while True:
     char = screen.getch()
-    print_table(rows, hidden_cards, arrow)
     if char == ord('q') or char == 27: # q ou ESC para sair. ESC tem um delay por algum motivo
         break
     elif char == curses.KEY_LEFT:
         if check_arrow(rows, arrow, "left"):
+            old_arrow = arrow.copy()
+            cursor_to(20, 30)
             arrow[0] -= 1
             arrow[1] = len(rows[arrow[0]]) - 1
 
-            print(chr(27) + "[2J") # Unica forma que consegui encontrar pra limpar a tela com o curses
     elif char == curses.KEY_UP:
         if check_arrow(rows, arrow, "up"):
+            old_arrow = arrow.copy()
             arrow[1] -= 1
-            print(chr(27) + "[2J")
     elif char == curses.KEY_RIGHT:
         if check_arrow(rows, arrow, "right"):
+            old_arrow = arrow.copy()
             arrow[0] += 1
             arrow[1] = len(rows[arrow[0]]) - 1
 
-            print(chr(27) + "[2J")
     elif char == curses.KEY_DOWN:
         if check_arrow(rows, arrow, "down"):
+            old_arrow = arrow.copy()
             arrow[1] += 1
-            print(chr(27) + "[2J")
     elif char == ord('s'):
-        draw_cards(rows, deck, arrow)
-        print(chr(27) + "[2J")
+        if len(deck) > 0:
+            old_arrow = arrow.copy()
+            draw_cards(rows, deck, arrow)
+
+    print_table(rows, hidden_cards, arrow, old_arrow)
 
 screen.erase()
 curses.nocbreak()
@@ -193,6 +209,8 @@ screen.keypad(0)
 curses.endwin()
 
 print(chr(27) + "[2J")
+os.system('clear')
+
 
 if os.name == "posix": # Desesconde cursor
     os.system('tput cnorm')
