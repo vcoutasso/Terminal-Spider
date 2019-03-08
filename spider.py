@@ -12,11 +12,7 @@ import sys
 
 # Funcao para tratar o SIGINT e fazer com que o programa encerre graciosamente.
 def signal_handler(sig, frame):
-    screen.erase()
-    curses.nocbreak()
-    curses.echo()
-    screen.keypad(0)
-    curses.endwin()
+    endwin()
     print(chr(27) + "[2J")
 
     if os.name == "posix": # Desesconde cursor
@@ -34,6 +30,14 @@ if os.name != "posix":
     init(convert=True) # Inicializa o modulo
 else:
     os.system('tput civis') # Esconde cursor no linux para ficar mais bonitinho
+
+def endwin():
+    screen.erase()
+    curses.nocbreak()
+    curses.echo()
+    screen.keypad(0)
+    curses.endwin()
+    return 0
 
 # Move o cursor para uma posicao especifica.
 def cursor_to(x, y): 
@@ -181,50 +185,39 @@ for i in range(random.randint(5,8)):
 set_table(deck, rows)
 
 #Loop principal.
-try:
-    while True:
-        char = screen.getch()
-        if char == ord('q') or char == 27: # q ou ESC para sair. ESC tem um delay por algum motivo
-            break
-        elif char == curses.KEY_LEFT:
-            if check_arrow(rows, arrow, "left"):
-                old_arrow = arrow.copy()
-                cursor_to(20, 30)
-                arrow[0] -= 1
-                arrow[1] = len(rows[arrow[0]]) - 1
+while True:
+    char = screen.getch()
+    if char == ord('q') or char == 27: # q ou ESC para sair. ESC tem um delay por algum motivo
+        break
+    elif char == curses.KEY_LEFT:
+        if check_arrow(rows, arrow, "left"):
+            old_arrow = arrow.copy()
+            cursor_to(20, 30)
+            arrow[0] -= 1
+            arrow[1] = len(rows[arrow[0]]) - 1
 
-        elif char == curses.KEY_UP:
-            if check_arrow(rows, arrow, "up"):
-                old_arrow = arrow.copy()
-                arrow[1] -= 1
-        elif char == curses.KEY_RIGHT:
-            if check_arrow(rows, arrow, "right"):
-                old_arrow = arrow.copy()
-                arrow[0] += 1
-                arrow[1] = len(rows[arrow[0]]) - 1
+    elif char == curses.KEY_UP:
+        if check_arrow(rows, arrow, "up"):
+            old_arrow = arrow.copy()
+            arrow[1] -= 1
+    elif char == curses.KEY_RIGHT:
+        if check_arrow(rows, arrow, "right"):
+            old_arrow = arrow.copy()
+            arrow[0] += 1
+            arrow[1] = len(rows[arrow[0]]) - 1
 
-        elif char == curses.KEY_DOWN:
-            if check_arrow(rows, arrow, "down"):
-                old_arrow = arrow.copy()
-                arrow[1] += 1
-        elif char == ord('s'):
-            if len(deck) > 0:
-                old_arrow = arrow.copy()
-                draw_cards(rows, deck, arrow)
+    elif char == curses.KEY_DOWN:
+        if check_arrow(rows, arrow, "down"):
+            old_arrow = arrow.copy()
+            arrow[1] += 1
+    elif char == ord('s'):
+        if len(deck) > 0:
+            old_arrow = arrow.copy()
+            draw_cards(rows, deck, arrow)
 
-        print_table(rows, hidden_cards, arrow, old_arrow)
-except:
-    print(chr(27) + "[2J")
-    cursor_to(0, 0)
-    print("Unexpected exception! Exiting now...")
-    time.sleep(2)
+    print_table(rows, hidden_cards, arrow, old_arrow)
 
-finally: 
-    screen.erase()
-    curses.nocbreak()
-    curses.echo()
-    screen.keypad(0)
-    curses.endwin()
+endwin()
 
 print(chr(27) + "[2J")
 os.system('clear')
