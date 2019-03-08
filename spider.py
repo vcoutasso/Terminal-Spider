@@ -1,8 +1,28 @@
-#TODO: Apagar a seta individualmente ao inves de apagar toda a tela para a tela parar de piscar constantemente.
+#!/usr/bin/python3
 
 import random 
 import curses # O metodo input() nao gosta muito das setas do teclado, entao estou usando window.getch() do curses
 import os
+import signal
+import sys
+
+# Funcao para tratar o SIGINT e fazer com que o programa encerre graciosamente.
+def signal_handler(sig, frame):
+    screen.erase()
+    curses.nocbreak()
+    curses.echo()
+    screen.keypad(0)
+    curses.endwin()
+    print(chr(27) + "[2J")
+
+    if os.name == "posix": # Desesconde cursor
+        os.system('tput cnorm')
+    print('SIGINT/SIGTERM received, exiting now...')
+    sys.exit(0)
+
+# Registra SIGINT e associa a signal_handler.
+signal.signal(signal.SIGINT, signal_handler)
+signal.signal(signal.SIGTERM, signal_handler)
 
 if os.name != "posix": # Linux aceita as sequencias ANSI por padrao, mas o windows precisa usar o modulo colorama
     from colorama import init
