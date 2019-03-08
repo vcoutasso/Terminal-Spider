@@ -2,8 +2,10 @@
 
 #TODO: Impedir com que a seta se desloque para posicoes probidas
 
+import time
 import random 
-import curses # O metodo input() nao gosta muito das setas do teclado, entao estou usando window.getch() do curses
+# O metodo input() nao gosta muito das setas do teclado, entao estou usando window.getch() do curses
+import curses 
 import os
 import signal
 import sys
@@ -26,18 +28,20 @@ def signal_handler(sig, frame):
 signal.signal(signal.SIGINT, signal_handler)
 signal.signal(signal.SIGTERM, signal_handler)
 
-if os.name != "posix": # Linux aceita as sequencias ANSI por padrao, mas o windows precisa usar o modulo colorama
+# Linux aceita as sequencias ANSI por padrao, mas o windows precisa usar o modulo colorama
+if os.name != "posix":
     from colorama import init
     init(convert=True) # Inicializa o modulo
 else:
     os.system('tput civis') # Esconde cursor no linux para ficar mais bonitinho
 
-def cursor_to(x, y): # Move o cursor para uma posicao especifica.
+# Move o cursor para uma posicao especifica.
+def cursor_to(x, y): 
     print("\033[%d;%dH" % (x, y), end='')
     return 0
 
-
-def move_cursor(direction, qtd): # Move o cursor em N linhas ou colunas para qualquer lado.
+# Move o cursor em N linhas ou colunas para qualquer lado.
+def move_cursor(direction, qtd): 
     if direction == "up":
         ch = 'A'
     elif direction == "down":
@@ -116,6 +120,7 @@ def print_table(rows, hidden, arrow, old_arrow):
 
     return 0
 
+
 def check_arrow(rows, arrow, direction):
     if direction == "left":
         if arrow[0] > 0:
@@ -133,6 +138,7 @@ def check_arrow(rows, arrow, direction):
 
     return False
 
+
 def draw_cards(rows, deck, arrow):
     if len(deck) > 0:
         for i in range(10):
@@ -148,7 +154,7 @@ def clear_screen():
     else:
         os.system('cls') 
 
-
+# Inicializa e configura curses
 screen = curses.initscr()
 curses.cbreak()
 curses.noecho()
@@ -156,7 +162,9 @@ screen.timeout(10)
 screen.keypad(True)
 screen.leaveok(0)
 
+
 random.seed() # Inicializa o estado interno do gerador de numeros aleatorios com o tempo atual do sistema.
+
 
 deck = 8 * ["A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K"] # Cria o baralho.
 rows = 10 * [None] # Cria as dez colunas.
@@ -164,53 +172,62 @@ hidden_cards = [4, 4, 4, 4, 3, 3, 3, 3, 3, 3] # Quantidade de cartas viradas par
 arrow = [0, 4] # Posicao x e y da seta de selecao
 old_arrow = [0, 0] # Coordenadas da seta na tela
 
+
 # Embaralha o baralho de 5 a 8 vezes.
 for i in range(random.randint(5,8)): 
     random.shuffle(deck)
 
+# Distribui as cartass
 set_table(deck, rows)
 
-while True:
-    char = screen.getch()
-    if char == ord('q') or char == 27: # q ou ESC para sair. ESC tem um delay por algum motivo
-        break
-    elif char == curses.KEY_LEFT:
-        if check_arrow(rows, arrow, "left"):
-            old_arrow = arrow.copy()
-            cursor_to(20, 30)
-            arrow[0] -= 1
-            arrow[1] = len(rows[arrow[0]]) - 1
+#Loop principal.
+try:
+    while True:
+        char = screen.getch()
+        if char == ord('q') or char == 27: # q ou ESC para sair. ESC tem um delay por algum motivo
+            break
+        elif char == curses.KEY_LEFT:
+            if check_arrow(rows, arrow, "left"):
+                old_arrow = arrow.copy()
+                cursor_to(20, 30)
+                arrow[0] -= 1
+                arrow[1] = len(rows[arrow[0]]) - 1
 
-    elif char == curses.KEY_UP:
-        if check_arrow(rows, arrow, "up"):
-            old_arrow = arrow.copy()
-            arrow[1] -= 1
-    elif char == curses.KEY_RIGHT:
-        if check_arrow(rows, arrow, "right"):
-            old_arrow = arrow.copy()
-            arrow[0] += 1
-            arrow[1] = len(rows[arrow[0]]) - 1
+        elif char == curses.KEY_UP:
+            if check_arrow(rows, arrow, "up"):
+                old_arrow = arrow.copy()
+                arrow[1] -= 1
+        elif char == curses.KEY_RIGHT:
+            if check_arrow(rows, arrow, "right"):
+                old_arrow = arrow.copy()
+                arrow[0] += 1
+                arrow[1] = len(rows[arrow[0]]) - 1
 
-    elif char == curses.KEY_DOWN:
-        if check_arrow(rows, arrow, "down"):
-            old_arrow = arrow.copy()
-            arrow[1] += 1
-    elif char == ord('s'):
-        if len(deck) > 0:
-            old_arrow = arrow.copy()
-            draw_cards(rows, deck, arrow)
+        elif char == curses.KEY_DOWN:
+            if check_arrow(rows, arrow, "down"):
+                old_arrow = arrow.copy()
+                arrow[1] += 1
+        elif char == ord('s'):
+            if len(deck) > 0:
+                old_arrow = arrow.copy()
+                draw_cards(rows, deck, arrow)
 
-    print_table(rows, hidden_cards, arrow, old_arrow)
+        print_table(rows, hidden_cards, arrow, old_arrow)
+except:
+    print(chr(27) + "[2J")
+    cursor_to(0, 0)
+    print("Unexpected exception! Exiting now...")
+    time.sleep(2)
 
-screen.erase()
-curses.nocbreak()
-curses.echo()
-screen.keypad(0)
-curses.endwin()
+finally: 
+    screen.erase()
+    curses.nocbreak()
+    curses.echo()
+    screen.keypad(0)
+    curses.endwin()
 
 print(chr(27) + "[2J")
 os.system('clear')
-
 
 if os.name == "posix": # Desesconde cursor
     os.system('tput cnorm')
