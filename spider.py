@@ -216,7 +216,7 @@ while True:
 
     elif char == curses.KEY_UP:
         if check_arrow(rows, arrow, "up"):
-            if check_cards(rows, arrow):
+            if check_cards(rows, arrow) and (len(rows[arrow[0]]) - hidden_cards[arrow[0]]) > 1:
                 old_arrow = arrow.copy()
                 arrow[1] -= 1
     elif char == curses.KEY_RIGHT:
