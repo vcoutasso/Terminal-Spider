@@ -181,6 +181,7 @@ def move_cards(rows, selected, num):
     cards = current_row[selected[1]:]
 
     if  cards[0] == 'A' and next_row[-1] == '2' or (
+            cards[0] == '9' and next_row[-1] == '10') or (
                 cards[0] == '10' and next_row[-1] == 'J') or (
                         cards[0] == 'J' and next_row[-1] == 'Q') or (
                                 cards[0] == 'Q' and next_row[-1] == 'K') or (
