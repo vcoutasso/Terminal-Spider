@@ -1,7 +1,5 @@
 #!/usr/bin/python3
 
-#TODO: Impedir com que a seta se desloque para posicoes probidas
-
 import time
 import random 
 # O metodo input() nao gosta muito das setas do teclado, entao estou usando window.getch() do curses
@@ -142,6 +140,26 @@ def check_arrow(rows, arrow, direction):
 
     return False
 
+# Verifica se a proxima carta na coluna faz parte da sequencia, para que possa ser selecionada tambem caso positivo.
+def check_cards(row, arrow):
+    current_card = row[arrow[0]][arrow[1]]
+    next_card = row[arrow[0]][arrow[1]-1]
+
+    try:
+        if int(next_card) == int(current_card) + 1:
+            return True
+    except ValueError:
+        if current_card == '10' and next_card == 'J':
+            return True
+        elif current_card == 'J' and next_card == 'Q':
+            return True
+        elif current_card == 'Q' and next_card == 'K':
+            return True
+        elif current_card == 'A' and next_card == '2':
+            return True
+
+    return False
+
 
 def draw_cards(rows, deck, arrow):
     if len(deck) > 0:
@@ -198,8 +216,9 @@ while True:
 
     elif char == curses.KEY_UP:
         if check_arrow(rows, arrow, "up"):
-            old_arrow = arrow.copy()
-            arrow[1] -= 1
+            if check_cards(rows, arrow):
+                old_arrow = arrow.copy()
+                arrow[1] -= 1
     elif char == curses.KEY_RIGHT:
         if check_arrow(rows, arrow, "right"):
             old_arrow = arrow.copy()
