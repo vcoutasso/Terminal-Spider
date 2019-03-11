@@ -1,5 +1,9 @@
 #!/usr/bin/python3
 
+#TODO: Fazer com que a tela so seja atualizada ao receber um comando valido para ver se resolve o flicker no note
+#TODO: Implementar pontuacao, recolher cartas quando completar sequencia e feedback ao pressionar espaco
+#      Considerar tambem nomear as colunas para facilitar a gameplay
+
 import time
 import random 
 # O metodo input() nao gosta muito das setas do teclado, entao estou usando window.getch() do curses
@@ -169,6 +173,28 @@ def draw_cards(rows, deck, arrow):
 
     return 0
 
+
+def move_cards(rows, selected, num):
+    current_row = rows[selected[0]]
+    next_row = rows[num]
+
+    cards = current_row[selected[1]:]
+
+    if  cards[0] == 'A' and next_row[-1] == '2' or (
+                cards[0] == '10' and next_row[-1] == 'J') or (
+                        cards[0] == 'J' and next_row[-1] == 'Q') or (
+                                cards[0] == 'Q' and next_row[-1] == 'K') or (
+                                        ord(cards[0]) == ord(next_row[-1]) - 1):
+
+        for i in range(len(cards)):
+            current_row.pop()
+        # current_row = current_row[:selected[1]]
+        next_row = rows[num].extend(cards)
+
+    
+
+
+
 # Limpa a tela.
 def clear_screen():
     if os.name == "posix": 
@@ -180,7 +206,7 @@ def clear_screen():
 screen = curses.initscr()
 curses.cbreak()
 curses.noecho()
-screen.timeout(10)
+screen.timeout(25)
 screen.keypad(True)
 screen.leaveok(0)
 
@@ -233,6 +259,23 @@ while True:
         if len(deck) > 0:
             old_arrow = arrow.copy()
             draw_cards(rows, deck, arrow)
+    elif char == 32: # Barra de espaco
+        selected = arrow.copy()
+
+        # Permite que o getch impeça o programa de continuar executando até que seja lida input do usuario
+        screen.nodelay(False)
+        char = screen.getch() 
+        screen.nodelay(True)
+
+        if char >= 48 and char <= 57:
+            char = char - 48
+            move_cards(rows, selected, char)
+            print(chr(27) + "[2J")
+            arrow = [char, len(rows[char]) - 1]
+            if len(rows[selected[0]]) == hidden_cards[selected[0]]:
+                hidden_cards[selected[0]] -= 1
+
+        
 
     print_table(rows, hidden_cards, arrow, old_arrow)
 
