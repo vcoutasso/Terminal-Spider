@@ -8,5 +8,5 @@ As of today I have no plans on implementing any other game mode and/or difficult
 
 - Press **space** to select a card. You can move up a column to select a valid sequence instead of just the last card.
 - Press **'s'** to draw cards from the stock.
-- Select the desired target column by pressing the matching key on the keyboard (0-9). 
+- Select the desired target column by pressing the matching key on the keyboard **[0-9]**. 
 
