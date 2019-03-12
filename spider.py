@@ -89,13 +89,13 @@ def print_table(rows, hidden, arrow, old_arrow):
     card_back_top = "┌────┐\033[1B\033[6D| /\ |\033[1B\033[6D"
     card_back_bottom = "| -- |\033[1B\033[6D| \/ |\033[1B\033[6D└────┘"
 
-    x = 10
+    x = 9
     for i in range(10):
         cursor_to(0, x)
         print("[%d]" % (i), end='')
         x += 13
 
-    cursor_to(2, 8)
+    cursor_to(2, 7)
 
     for i in range(0,10):
         if len(rows[i]) == 0:
@@ -193,19 +193,25 @@ def move_cards(rows, selected, num):
     next_row = rows[num]
 
     cards = current_row[selected[1]:]
+    try:
+        if len(next_row) == 0 or (
+                cards[0] == 'A' and next_row[-1] == '2') or (
+                    cards[0] == '9' and next_row[-1] == '10') or (
+                        cards[0] == '10' and next_row[-1] == 'J') or (
+                                cards[0] == 'J' and next_row[-1] == 'Q') or (
+                                    cards[0] == 'Q' and next_row[-1] == 'K') or (
+                                        ord(cards[0]) == ord(next_row[-1]) - 1):
 
-    if len(next_row) == 0 or (
-            cards[0] == 'A' and next_row[-1] == '2') or (
-                cards[0] == '9' and next_row[-1] == '10') or (
-                    cards[0] == '10' and next_row[-1] == 'J') or (
-                            cards[0] == 'J' and next_row[-1] == 'Q') or (
-                                cards[0] == 'Q' and next_row[-1] == 'K') or (
-                                    ord(cards[0]) == ord(next_row[-1]) - 1):
+            for i in range(len(cards)):
+                current_row.pop()
 
-        for i in range(len(cards)):
-            current_row.pop()
-        # current_row = current_row[:selected[1]]
-        next_row = rows[num].extend(cards)
+
+            next_row = rows[num].extend(cards)
+    except:
+        cursor_to(40, 40)
+        print("Exception thrown :(")
+    finally:
+        return 0
 
    
 # Verifica a presenca da sequencia completa em alguma das colunas
@@ -214,9 +220,13 @@ def sequence_index(row):
 
     for i in range(len(row)):
         if row[i:] == sequence:
+            for j in range(0,13):
+                row.pop(i)
             return i
         else:
-            return -1
+            continue
+
+    return -1
 
 # Limpa a tela.
 def clear_screen():
@@ -225,11 +235,13 @@ def clear_screen():
     else:
         os.system('cls') 
 
+    return 0
+
 # Inicializa e configura curses
 screen = curses.initscr()
 curses.cbreak()
 curses.noecho()
-screen.timeout(-1)
+screen.timeout(25)
 screen.keypad(True)
 screen.leaveok(0)
 
@@ -249,9 +261,12 @@ check = False
 for i in range(random.randint(5,8)): 
     random.shuffle(deck)
 
-# Distribui as cartass
+# Distribui as cartas
 set_table(deck, rows)
-print_table(rows, hidden_cards, arrow, old_arrow)
+
+# Debugging
+#rows[0] = ['1', '1', '1', '1', 'K', 'Q', 'J', '10', '9', '8', '7', '6', '5', '4', '3', '2']
+#rows[1].append('A')
 
 #Loop principal.
 while True:
@@ -261,8 +276,10 @@ while True:
     elif char == curses.KEY_LEFT:
         if check_arrow(rows, arrow, "left"):
             old_arrow = arrow.copy()
-            cursor_to(20, 30)
-            arrow[0] -= 1
+            if len(rows[arrow[0] - 1]) > 0:
+                arrow[0] -= 1
+            elif arrow[0] > 1:
+                arrow[0] -= 2
             arrow[1] = len(rows[arrow[0]]) - 1
 
     elif char == curses.KEY_UP:
@@ -270,28 +287,34 @@ while True:
             if check_cards(rows, arrow) and (len(rows[arrow[0]]) - hidden_cards[arrow[0]]) > 1:
                 old_arrow = arrow.copy()
                 arrow[1] -= 1
+
     elif char == curses.KEY_RIGHT:
         if check_arrow(rows, arrow, "right"):
             old_arrow = arrow.copy()
-            arrow[0] += 1
+            if len(rows[arrow[0] + 1]) > 0:
+                arrow[0] += 1
+            elif arrow[0] < 8:
+                arrow[0] += 2
             arrow[1] = len(rows[arrow[0]]) - 1
 
     elif char == curses.KEY_DOWN:
         if check_arrow(rows, arrow, "down"):
             old_arrow = arrow.copy()
             arrow[1] += 1
+
     elif char == ord('s'):
         if len(deck) > 0:
             old_arrow = arrow.copy()
             draw_cards(rows, deck, arrow)
             check = True
+
     elif char == 32: # Barra de espaco
         selected = arrow.copy()
 
         # Permite que o getch impeça o programa de continuar executando até que seja lida input do usuario
         screen.nodelay(False)
         char = screen.getch() 
-        screen.nodelay(True)
+        screen.timeout(25)
 
         if char >= 48 and char <= 57:
             char = char - 48
@@ -305,11 +328,10 @@ while True:
 
         
     if check is True:
-        #for i in range(0, 9):
-            #if len(rows[i]) > 12:
-                #index = sequence_index(rows[i])
-                #if index > -1:
-                    #rows[i] = rows[i][:index-1]
+        for i in range(0, 9):
+            if len(rows[i]) > 12:
+                if sequence_index(rows[i]) > -1:
+                    hidden_cards[i] -= 1
 
         check = False
 
