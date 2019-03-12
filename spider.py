@@ -80,50 +80,63 @@ def set_table(deck, rows):
 
 # Funcao responsavel por imprimir a mesa com as cartas na tela. Uma bagunca mas funciona.
 def print_table(rows, hidden, arrow, old_arrow):
-    card_placeholder = "┌────┐\033[1B\033[6D|10 \u2660|\033[1B\033[6D|    |\033[1B\033[6D|    |\033[1B\033[6D└────┘"
     card_back = "┌────┐\033[1B\033[6D| /\ |\033[1B\033[6D| -- |\033[1B\033[6D| \/ |\033[1B\033[6D└────┘"
+
+    card_placeholder = "┌────┐\033[1B\033[6D|    |\033[1B\033[6D|    |\033[1B\033[6D|    |\033[1B\033[6D└────┘"
 
     card_bottom = "|    |\033[1B\033[6D|    |\033[1B\033[6D└────┘"
 
     card_back_top = "┌────┐\033[1B\033[6D| /\ |\033[1B\033[6D"
     card_back_bottom = "| -- |\033[1B\033[6D| \/ |\033[1B\033[6D└────┘"
 
+    x = 10
+    for i in range(10):
+        cursor_to(0, x)
+        print("[%d]" % (i), end='')
+        x += 13
+
     cursor_to(2, 8)
 
     for i in range(0,10):
-        for j in range(0,len(rows[i])):
-            if j < hidden[i]:
-                print(card_back_top, end='')
-                continue
+        if len(rows[i]) == 0:
+            print(card_placeholder, end='')
+            move_cursor("up", 4)
+            move_cursor("forward", 7)
+        else:
+            for j in range(0,len(rows[i])):
+                if j < hidden[i]:
+                    print(card_back_top, end='')
+                    continue
 
-            if arrow[0] == i and arrow[1] == j: # Imprime seta de selecao
+                if arrow[0] == i and arrow[1] == j: # Imprime seta de selecao
 
-                move_cursor("backward", 2)
-                move_cursor("down", 1)
+                    move_cursor("backward", 2)
+                    move_cursor("down", 1)
 
-                print("->", end='')
-                move_cursor("up", 1)
+                    print("->", end='')
+                    move_cursor("up", 1)
 
-            # Apaga seta antiga.
-            if old_arrow[0] == i and old_arrow[1] == j: 
+                # Apaga seta antiga.
+                if old_arrow[0] == i and old_arrow[1] == j: 
 
-                move_cursor("backward", 2)
-                move_cursor("down", 1)
-                
-                print("  ", end='')
-                move_cursor("up", 1)
+                    move_cursor("backward", 2)
+                    move_cursor("down", 1)
+                    
+                    print("  ", end='')
+                    move_cursor("up", 1)
 
-            value = rows[i][j]
-            if value == '10':
-                card_top = "┌────┐\033[1B\033[6D|10 \u2660|\033[1B\033[6D"
-            else:
-                card_top = "┌────┐\033[1B\033[6D|{}  \u2660|\033[1B\033[6D".format(value)
-            print(card_top, end='')
+                value = rows[i][j]
+                if value == '10':
+                    card_top = "┌────┐\033[1B\033[6D|10 \u2660|\033[1B\033[6D"
+                else:
+                    card_top = "┌────┐\033[1B\033[6D|{}  \u2660|\033[1B\033[6D".format(value)
+                print(card_top, end='')
 
-        print(card_bottom, end='')
-        move_cursor("up", 2 + 2 * len(rows[i]))
-        move_cursor("forward", 6)
+            print(card_bottom, end='')
+            move_cursor("up", 2 + 2 * len(rows[i]))
+            move_cursor("forward", 7)
 
+    cursor_to(0,0)
     return 0
 
 
@@ -171,30 +184,39 @@ def draw_cards(rows, deck, arrow):
             rows[i].append(deck.pop())
         arrow[1] += 1
 
-    return 0
+    return 0 
 
 
+# Funcao responsavel por mover as cartas na mesa
 def move_cards(rows, selected, num):
     current_row = rows[selected[0]]
     next_row = rows[num]
 
     cards = current_row[selected[1]:]
 
-    if  cards[0] == 'A' and next_row[-1] == '2' or (
-            cards[0] == '9' and next_row[-1] == '10') or (
-                cards[0] == '10' and next_row[-1] == 'J') or (
-                        cards[0] == 'J' and next_row[-1] == 'Q') or (
+    if len(next_row) == 0 or (
+            cards[0] == 'A' and next_row[-1] == '2') or (
+                cards[0] == '9' and next_row[-1] == '10') or (
+                    cards[0] == '10' and next_row[-1] == 'J') or (
+                            cards[0] == 'J' and next_row[-1] == 'Q') or (
                                 cards[0] == 'Q' and next_row[-1] == 'K') or (
-                                        ord(cards[0]) == ord(next_row[-1]) - 1):
+                                    ord(cards[0]) == ord(next_row[-1]) - 1):
 
         for i in range(len(cards)):
             current_row.pop()
         # current_row = current_row[:selected[1]]
         next_row = rows[num].extend(cards)
 
-    
+   
+# Verifica a presenca da sequencia completa em alguma das colunas
+def sequence_index(row):
+    sequence = ['K', 'Q', 'J', '10', '9', '8','7', '6', '5','4', '3', '2','A']
 
-
+    for i in range(len(row)):
+        if row[i:] == sequence:
+            return i
+        else:
+            return -1
 
 # Limpa a tela.
 def clear_screen():
@@ -207,7 +229,7 @@ def clear_screen():
 screen = curses.initscr()
 curses.cbreak()
 curses.noecho()
-screen.timeout(25)
+screen.timeout(-1)
 screen.keypad(True)
 screen.leaveok(0)
 
@@ -220,6 +242,7 @@ rows = 10 * [None] # Cria as dez colunas.
 hidden_cards = [4, 4, 4, 4, 3, 3, 3, 3, 3, 3] # Quantidade de cartas viradas para baixo em cada coluna.
 arrow = [0, 4] # Posicao x e y da seta de selecao
 old_arrow = [0, 0] # Coordenadas da seta na tela
+check = False
 
 
 # Embaralha o baralho de 5 a 8 vezes.
@@ -228,6 +251,7 @@ for i in range(random.randint(5,8)):
 
 # Distribui as cartass
 set_table(deck, rows)
+print_table(rows, hidden_cards, arrow, old_arrow)
 
 #Loop principal.
 while True:
@@ -260,6 +284,7 @@ while True:
         if len(deck) > 0:
             old_arrow = arrow.copy()
             draw_cards(rows, deck, arrow)
+            check = True
     elif char == 32: # Barra de espaco
         selected = arrow.copy()
 
@@ -276,7 +301,17 @@ while True:
             if len(rows[selected[0]]) == hidden_cards[selected[0]]:
                 hidden_cards[selected[0]] -= 1
 
+            check = True
+
         
+    if check is True:
+        #for i in range(0, 9):
+            #if len(rows[i]) > 12:
+                #index = sequence_index(rows[i])
+                #if index > -1:
+                    #rows[i] = rows[i][:index-1]
+
+        check = False
 
     print_table(rows, hidden_cards, arrow, old_arrow)
 
