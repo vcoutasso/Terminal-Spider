@@ -5,8 +5,8 @@ As of today I have no plans on implementing any other game mode and/or difficult
 ## How to play
 
 - Use the **arrow keys** to move the selection arrow on the screen.
-
 - Press **space** to select a card. You can move up a column to select a valid sequence instead of just the last card.
-- Press **'s'** to draw cards from the stock.
 - Select the desired target column by pressing the matching key on the keyboard **[0-9]**. 
+- Press **'u'** to undo the last move. Each undo subtracts 10 points from the score.
+- Press **'s'** to draw cards from the stock.
 
