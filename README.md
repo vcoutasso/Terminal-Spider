@@ -2,6 +2,8 @@
 
 As of today I have no plans on implementing any other game mode and/or difficulty. Currently the game only supports the 1 suit / 8 decks variant (104 cards). 
 
+Tested on Linux with Python 3.7
+
 ## How to play
 
 - Use the **arrow keys** to move the selection arrow on the screen.
