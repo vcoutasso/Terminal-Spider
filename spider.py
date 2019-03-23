@@ -39,6 +39,10 @@ def endwin():
     curses.endwin()
     return 0
 
+def print_time(time):
+    strtime = "%02d:%02d" % (int(time/60), int(time%60))
+    return strtime
+
 # Move o cursor para uma posicao especifica.
 def cursor_to(x, y): 
     print("\033[%d;%dH" % (x, y), end='')
@@ -238,6 +242,9 @@ def clear_screen():
 
     return 0
 
+
+start_time = time.time()
+
 os.environ.setdefault('ESCDELAY', '25') #Diminui o delay do ESC de 1000ms para 25ms
 # Inicializa e configura curses
 screen = curses.initscr()
@@ -381,6 +388,8 @@ while True:
     print("\033[1;37mSequences: \033[1;36m{}\033[0m".format(sequences))
     cursor_to(5, 131)
     print("\033[1;37mDeck: \033[1;36m{}\033[0m".format(len(deck)))
+    cursor_to(8, 131)
+    print("\033[1;37mTime: \033[1;36m{}\033[0m".format(print_time(time.time() - start_time)))
     cursor_to(0, 0)
 
     print_table(columns, hidden_cards, arrow, old_arrow)
