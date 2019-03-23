@@ -1,8 +1,6 @@
 #!/usr/bin/python3
 
-#TODO: Fazer com que a tela so seja atualizada ao receber um comando valido para ver se resolve o flicker no note
-#TODO: Implementar pontuacao, recolher cartas quando completar sequencia e feedback ao pressionar espaco
-#      Considerar tambem nomear as colunas para facilitar a gameplay
+#TODO: Implementar pontuacao e botao de undo
 
 import time
 import random 
@@ -255,6 +253,7 @@ hidden_cards = [4, 4, 4, 4, 3, 3, 3, 3, 3, 3] # Quantidade de cartas viradas par
 arrow = [0, 4] # Posicao x e y da seta de selecao
 old_arrow = [0, 0] # Coordenadas da seta na tela
 check = False
+sequences = 0
 
 
 # Embaralha o baralho de 5 a 8 vezes.
@@ -310,6 +309,9 @@ while True:
 
     elif char == 32: # Barra de espaco
         selected = arrow.copy()
+        cursor_to(36, 135)
+        print("\033[1;37m[Space]\033[0m")
+        cursor_to(0, 0)
 
         # Permite que o getch impeça o programa de continuar executando até que seja lida input do usuario
         screen.nodelay(False)
@@ -330,10 +332,21 @@ while True:
     if check is True:
         for i in range(0, 9):
             if len(columns[i]) > 12:
-                if sequence_index(columns[i]) > -1:
+                if sequence_index(columns[i]) != -1:
                     hidden_cards[i] -= 1
+                    sequences += 1
 
         check = False
+
+    if (len(columns) == 0 or sequences == 8):
+        cursor_to(20,65)
+        print("\033[1;34mYou win! :)\033[0m")
+
+    cursor_to(2, 131)
+    print("\033[1;37mSequences: \033[1;36m{}\033[0m".format(sequences))
+    cursor_to(3, 131)
+    print("\033[1;37mDeck: \033[1;36m{}\033[0m".format(len(deck)))
+    cursor_to(0, 0)
 
     print_table(columns, hidden_cards, arrow, old_arrow)
 
