@@ -353,7 +353,7 @@ while True:
 endwin()
 
 print(chr(27) + "[2J")
-os.system('clear')
+clear_screen()
 
 if os.name == "posix": # Desesconde cursor
     os.system('tput cnorm')
