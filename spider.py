@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 
-#TODO: Implementar pontuacao e botao de undo
+#TODO: Implementar hints
 
 import time
 import random 
@@ -189,6 +189,8 @@ def draw_cards(columns, deck, arrow):
 def move_cards(columns, selected, num):
     current_column = columns[selected[0]]
     next_column = columns[num]
+    
+    success = 0
 
     cards = current_column[selected[1]:]
     try:
@@ -205,16 +207,17 @@ def move_cards(columns, selected, num):
 
 
             next_column = columns[num].extend(cards)
+            success = 1
     except:
         cursor_to(40, 40)
         print("Exception thrown :(")
     finally:
-        return 0
+        return success
 
    
 # Verifica a presenca da sequencia completa em alguma das colunas
 def sequence_index(columns):
-    sequence = ['K', 'Q', 'J', '10', '9', '8','7', '6', '5','4', '3', '2','A']
+    sequence = ['K', 'Q', 'J', '10', '9', '8','7', '6', '5','4', '3', '2', 'A']
 
     for i in range(len(columns)):
         if columns[i:] == sequence:
@@ -235,6 +238,7 @@ def clear_screen():
 
     return 0
 
+os.environ.setdefault('ESCDELAY', '25') #Diminui o delay do ESC de 1000ms para 25ms
 # Inicializa e configura curses
 screen = curses.initscr()
 curses.cbreak()
@@ -254,6 +258,8 @@ arrow = [0, 4] # Posicao x e y da seta de selecao
 old_arrow = [0, 0] # Coordenadas da seta na tela
 check = False
 sequences = 0
+undo = False
+score = 500
 
 
 # Embaralha o baralho de 5 a 8 vezes.
@@ -270,7 +276,8 @@ set_table(deck, columns)
 #Loop principal.
 while True:
     char = screen.getch()
-    if char == ord('q') or char == 27: # q ou ESC para sair. ESC tem um delay por algum motivo
+
+    if char == ord('q') or char == 27: # q ou ESC para sair.
         break
     elif char == curses.KEY_LEFT:
         if check_arrow(columns, arrow, "left"):
@@ -320,13 +327,26 @@ while True:
 
         if char >= 48 and char <= 57:
             char = char - 48
-            move_cards(columns, selected, char)
+
+
+            old_columns = [row[:] for row in columns]
+            old_hidden = hidden_cards.copy()
+            space_arrow = arrow.copy()
+            result = move_cards(columns, selected, char)
             print(chr(27) + "[2J")
             arrow = [char, len(columns[char]) - 1]
+
+
             if len(columns[selected[0]]) == hidden_cards[selected[0]]:
                 hidden_cards[selected[0]] -= 1
 
+            if result == 1: 
+                score -= 1
+
+            undo = True
             check = True
+        else:
+            clear_screen()
 
         
     if check is True:
@@ -335,16 +355,31 @@ while True:
                 if sequence_index(columns[i]) != -1:
                     hidden_cards[i] -= 1
                     sequences += 1
+                    score += 100
+                    old_columns = [row[:] for row in columns]
 
         check = False
+
+    if char == ord('u') and undo == True:
+        hidden_cards = old_hidden.copy()
+        columns = [row[:] for row in old_columns]
+        arrow = space_arrow.copy()
+        score -= 10
+        undo = False
+        print(chr(27) + "[2J")
 
     if (len(columns) == 0 or sequences == 8):
         cursor_to(20,65)
         print("\033[1;34mYou win! :)\033[0m")
 
+
     cursor_to(2, 131)
+    if score < 0:
+        score = 0
+    print("\033[1;37mScore: \033[1;36m{}\033[0m".format(score))
+    cursor_to(4, 131)
     print("\033[1;37mSequences: \033[1;36m{}\033[0m".format(sequences))
-    cursor_to(3, 131)
+    cursor_to(5, 131)
     print("\033[1;37mDeck: \033[1;36m{}\033[0m".format(len(deck)))
     cursor_to(0, 0)
 
