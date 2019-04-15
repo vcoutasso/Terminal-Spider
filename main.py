@@ -136,7 +136,7 @@ while True:
                 if sequence_index(columns[i]) != -1:
                     hidden_cards[i] -= 1
                     sequences += 1
-                    score += 100
+                    score += 101
                     old_columns = [row[:] for row in columns]
 
         check = False
