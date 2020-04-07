@@ -389,6 +389,11 @@ class Spider:
                     self._draw_cards()
                     self.check = True
 
+            elif char >= 48 and char <= 57:
+                char = char - 48
+                print(chr(27) + "[2J")
+                self.arrow = [char, len(self.columns[char]) - 1]
+
             elif char == 32: # Barra de espaco
                 selected = self.arrow.copy()
                 self._cursor_to(36, 135)
