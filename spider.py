@@ -396,7 +396,7 @@ class Spider:
 
             elif char == 32: # Barra de espaco
                 selected = self.arrow.copy()
-                self._cursor_to(36, 135)
+                self._cursor_to(10, 131)
                 print("\033[1;37m[Space]\033[0m")
                 self._cursor_to(0, 0)
 

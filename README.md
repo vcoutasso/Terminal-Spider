@@ -12,3 +12,9 @@ Tested on Linux with Python 3.7
 - Press **'u'** to undo the last move. Each undo subtracts 10 points from the score.
 - Press **'s'** to draw cards from the stock.
 
+## Screenshots
+
+![Example of a new game initial state](screenshots/newgame.png?raw=true)
+
+![Quick demo of the game](screenshots/demo.gif?raw=true)
+
