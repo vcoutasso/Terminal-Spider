@@ -432,7 +432,7 @@ class Spider:
 
 
             if self.check is True:
-                for i in range(0, 9):
+                for i in range(0, 10):
                     if len(self.columns[i]) > 12:
                         if self._sequence_index(self.columns[i]) != -1:
                             self.hidden_cards[i] -= 1
