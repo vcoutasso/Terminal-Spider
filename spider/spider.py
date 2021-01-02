@@ -12,7 +12,6 @@ class Spider:
     Classe que representa o jogo de cartas Spider Solitaire (paciência).
     """
 
-
     def __init__(self):
         """
         Inicializa todos os atributos da classe e configura o terminal adequadamente
@@ -101,12 +100,14 @@ class Spider:
         curses.endwin()
         return 0
 
+
     def _get_curr_time(self, time):
         """
         Retorna o tempo atual de jogo no formato que sera impresso na tela
         """
         strtime = "%02d:%02d" % (int(time/60), int(time%60))
         return strtime
+
 
     def _cursor_to(self, x, y):
         """
@@ -152,6 +153,7 @@ class Spider:
             self.columns[i].append(self.deck.pop())
 
         return 0
+
 
     def _print_table(self):
         """
