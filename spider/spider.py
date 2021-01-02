@@ -478,8 +478,3 @@ class Spider:
             self._print_table()
 
         self._cleanup()
-
-
-if __name__ == "__main__":
-    game = Spider()
-    game.run()
